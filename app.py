@@ -7,8 +7,8 @@ from werkzeug.utils import secure_filename
 from PIL import Image
 from rembg import remove
 import tensorflow as tf
+from keras.applications import mobilenet_v2
 from google import genai
-
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
 app.config['UPLOAD_FOLDER'] = 'uploads'
@@ -17,10 +17,10 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 IMG_SIZE = (224, 224)
-MODEL_PATH = '/Users/satwikreddy/Desktop/gen ai/PlantCare_AI/models/mobilenetv2_final.keras'
+MODEL_PATH = 'mobilenetv2_final.keras'
 
 # ── Gemini API Setup ───────────────────────────────────────────────────────────
-GEMINI_API_KEY = "Enter your API KEY"   # ← paste your key from aistudio.google.com
+GEMINI_API_KEY = "AIzaSyDZMYkq4XXYA6dUSGqIx32FBbarrEZjOOc"   # ← paste your key from aistudio.google.com
 client = genai.Client(api_key=GEMINI_API_KEY)
 
 try:
@@ -156,8 +156,6 @@ Rules:
 
 # ── TTA Prediction with Background Removal ────────────────────────────────────
 def predict_with_tta(filepath, n_augments=10):
-    from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
-
     # Step 1: Remove background using rembg
     original   = Image.open(filepath).convert('RGB')
     removed_bg = remove(original)
@@ -185,7 +183,7 @@ def predict_with_tta(filepath, n_augments=10):
             k=np.random.randint(0, 4)
         ).numpy()
 
-        aug = preprocess_input(aug_tensor)
+        aug = mobilenet_v2.preprocess_input(aug_tensor)
         augments.append(aug)
 
     # Step 3: Predict all augmentations and average
